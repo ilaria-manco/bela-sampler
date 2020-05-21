@@ -58,26 +58,6 @@ Button buttonLooper;
 Button buttonPlayStopLoop;
 Scope scope;
 
-float gDelayBuffer[DELAY_BUFFER_SIZE] = {0};
-int gDelayBufWritePtr = 0;
-float delayAmount_ = 0.;
-float gDelayFeedbackAmount = 0.999;
-float delayAmountPre_ = 0.75;
-int gDelayInSamples = 22050;
-
-// Butterworth coefficients for low-pass filter @ 8000Hz
-float gDel_a0 = 0.1772443606634904;
-float gDel_a1 = 0.3544887213269808;
-float gDel_a2 = 0.1772443606634904;
-float gDel_a3 = -0.5087156198145868;
-float gDel_a4 = 0.2176930624685485;
-
-// Previous two input and output values for filter delay
-float gDel_x1 = 0;
-float gDel_x2 = 0;
-float gDel_y1 = 0;
-float gDel_y2 = 0;
-
 bool setup(BelaContext *context, void *userData)
 {
 	// Initialise the button
@@ -141,13 +121,13 @@ void calculateProcessingParams(int controller, float value)
 							break;
 		}
 		case delayGain:{
-							float delayAmount = map(value, 0.0, 1.0, 0., 1.);
-							delayAmount_ = delayAmount;
+							float delayGain = map(value, 0.0, 1.0, 0., 1.);
+							delay.setAmountofDelay(delayGain)
 							break;
 		}
 		case feedbackGain:{
-							float delayGain = map(value, 0.0, 1.0, 0., 1.);
-							gDelayFeedbackAmount = delayGain;
+							float feedbackGain = map(value, 0.0, 1.0, 0., 1.);
+							delay.setAmountofFeedback(feedbackGain)
 							break;
 		}
 	}
@@ -277,26 +257,8 @@ void render(BelaContext *context, void *userData)
 		if(gIsProcessing){
 			float lfo = tremolo.nextSample();
 			wetOut = filter.process(out)*lfo*0.5f;
+			wetOut = delay.process(wetOut);
 			
-			if(++gDelayBufWritePtr>DELAY_BUFFER_SIZE){
-				gDelayBufWritePtr = 0;
-			}
-        		
-		    float del_input = (delayAmountPre_ * wetOut + gDelayBuffer[(gDelayBufWritePtr-gDelayInSamples+DELAY_BUFFER_SIZE)%DELAY_BUFFER_SIZE] * gDelayFeedbackAmount);
-		    float temp_x = del_input;
-		    del_input = gDel_a0*del_input
-		                + gDel_a1*gDel_x1
-		                + gDel_a2*gDel_x2
-		                + gDel_a3*gDelayBuffer[(gDelayBufWritePtr-1+DELAY_BUFFER_SIZE)%DELAY_BUFFER_SIZE]
-		                + gDel_a4*gDelayBuffer[(gDelayBufWritePtr-2+DELAY_BUFFER_SIZE)%DELAY_BUFFER_SIZE];
-		    gDel_x2 = gDel_x1;
-		    gDel_x1 = temp_x;
-		    gDel_y2 = gDel_y1;
-		    gDel_y1 = del_input;
-
-		    gDelayBuffer[gDelayBufWritePtr] = del_input;
-		    
-		    wetOut += gDelayBuffer[(gDelayBufWritePtr-gDelayInSamples+DELAY_BUFFER_SIZE)%DELAY_BUFFER_SIZE] * delayAmount_;
 		}
 		
 		if(gPlayBackLoop){
