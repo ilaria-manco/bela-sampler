@@ -1,0 +1,1 @@
+int calculatePadNumber(int messageNumber);
