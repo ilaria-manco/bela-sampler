@@ -98,7 +98,6 @@ void calculateProcessingParams(int controller, float value)
 		case playbackTempo:	{
 							float tempo = map(value, 0, 1, 500, 300);
 							sampleLoader.changeTempo(tempo);
-							rt_printf("%f", sampleLoader.getTempo());
 							break;
 		}
 		case wetDry:	{
@@ -149,7 +148,6 @@ void padOn(int msgNumber, int velocity)
 	}
 	if(gIsSequencing && gPressedNow != gPreviouslyPressed && !isEmpty){
 		sampleLoader.saveSequenceEvent(gLastPadPressed);
-		rt_printf("sequence length %i", sampleLoader.sequenceLength());
 	}
 	
 	padVelocities[padNumber] = powf(10.0, decibels / 20.0);
@@ -258,7 +256,6 @@ void render(BelaContext *context, void *userData)
 			float lfo = tremolo.nextSample();
 			wetOut = filter.process(out)*lfo*0.5f;
 			wetOut = delay.process(wetOut);
-			
 		}
 		
 		if(gPlayBackLoop){
