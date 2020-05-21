@@ -12,7 +12,7 @@
 #include "Button.h"
 #include "utils.h"
 
-// State Variabled
+// State Variables
 int gIsRecording = 0;	// when 1, save audio in to buffer of pad pressed
 int gIsSequencing = 0;	// when 1, save sequence of pads pressed
 int gIsPlayback = 0;	// when 1, play back samples in saved sequence
